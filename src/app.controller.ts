@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { CreateClientBody } from './dtos/create-client-body';
 import { ClientRepository } from './repositories/client-repository';
@@ -17,15 +25,38 @@ export class AppController {
     return cliente;
   }
 
+  @Get('/client/:id')
+  async getClientUnique(@Param('id') id: string) {
+    const cliente = await this.clientRepository.findUnique(id);
+    return cliente;
+  }
+
   @Post('/client')
   async createClient(@Body() body: CreateClientBody) {
     const { name, birthday } = body;
-    console.log(name, birthday);
     const cliente = new Client(name, birthday);
-    console.log(cliente.birthday);
     const response = await this.clientRepository.create(cliente);
-
     return response;
+  }
+
+  @Put('/client/:id')
+  async updateClient(@Body() body: CreateClientBody, @Param('id') id: string) {
+    const cliente = await this.clientRepository.findUnique(id);
+    if (!!cliente) {
+      const { name, birthday } = body;
+
+      const response = await this.clientRepository.update(id, name, birthday);
+      return response;
+    }
+  }
+
+  @Delete('/client/:id')
+  async deleteClient(@Param('id') id: string) {
+    const cliente = await this.clientRepository.findUnique(id);
+    if (!!cliente) {
+      this.clientRepository.delete(id);
+      return 'Client deleted successfully';
+    }
   }
 
   @Get()
